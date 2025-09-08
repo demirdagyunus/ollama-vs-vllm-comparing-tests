@@ -1,0 +1,65 @@
+====================================================================================================
+VLLM COMPLEX REASONING PERFORMANCE TEST REPORT - QWEN3-4B
+====================================================================================================
+Model: Qwen/Qwen3-4B
+Deployment: vllm
+Base URL: http://127.0.0.1:8000
+Test Duration per Level: 180 seconds (3 minutes)
+Max Tokens: 512
+Temperature: 0.1
+Task Types: Mathematical Reasoning, Code Generation/Debugging, Multi-hop QA
+Test Timestamp: 2025-09-08T17:22:33.756018
+
+EXECUTIVE SUMMARY
+--------------------------------------------------
+Total Complex Tasks Processed: 746
+Overall Success Rate: 100.00%
+Average Accuracy Score: 59.28%
+Maximum Throughput: 1.08 tasks/s
+
+COMPLEX REASONING PERFORMANCE SUMMARY
+--------------------------------------------------------------------------------------------------------------------------------------------
+Level    Total    Success  Failed  Avg(s)   P95(s)   TPS      Accuracy%  Math%   Code%   QA%     Mem(MB) 
+--------------------------------------------------------------------------------------------------------------------------------------------
+20       212      212      0       17.7     28.1     1.1      56.9       35.2    65.7    74.1    0.1     
+50       242      242      0       41.5     55.4     1.1      62.5       44.0    69.1    74.2    0.3     
+100      292      292      0       76.6     100.2    1.1      58.4       40.7    67.3    69.3    0.4     
+
+TASK TYPE PERFORMANCE ANALYSIS
+--------------------------------------------------------------------------------
+Level 20:
+  - Math: 80 tasks
+  - Code: 63 tasks
+  - Qa: 69 tasks
+
+Level 50:
+  - Qa: 81 tasks
+  - Code: 81 tasks
+  - Math: 80 tasks
+
+Level 100:
+  - Qa: 98 tasks
+  - Math: 105 tasks
+  - Code: 89 tasks
+
+QUEUE AND MEMORY ANALYSIS
+--------------------------------------------------------------------------------
+Level    Avg Queue Wait(s)  Max Queue Wait(s)  Peak Memory(MB)
+--------------------------------------------------------------------------------
+20       17.67              28.37              0.8            
+50       30.39              57.40              1.8            
+100      48.49              100.53             3.5            
+
+COMPLEX REASONING SPECIFIC RECOMMENDATIONS
+--------------------------------------------------
+• Best Overall Accuracy: 50 concurrent users (62.5%)
+• Best Throughput: 100 concurrent users (1.08 tasks/s)
+• High queue wait times detected - consider increasing vLLM workers or optimizing batch processing
+• For complex reasoning optimization, consider:
+  - Increasing --max-model-len for longer reasoning chains
+  - Using --enable-chunked-prefill for better complex task handling
+  - Adjusting temperature (0.1-0.3) for more consistent reasoning
+  - Implementing request prioritization for different task types
+
+Complex reasoning test completed successfully!
+====================================================================================================

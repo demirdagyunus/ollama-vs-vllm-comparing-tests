@@ -1,6 +1,6 @@
 """
 Model: Qwen3-4B
-Deployment: vLLM ile Docker containerları ile production-ready setup  
+Deployment: Ollama ile Docker containerları ile production-ready setup  
 Test Yapısı: LangGraph ile çok adımlı reasoning agent'ı
 Task Türleri:
     - Mathematical reasoning (çok adımlı matematik problemleri)
@@ -56,6 +56,7 @@ import subprocess
 import os
 import requests
 from queue import Queue, Empty
+import ollama
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -64,10 +65,10 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TestConfig:
-    """Test configuration for complex reasoning tasks with vLLM"""
-    model_name: str = "Qwen/Qwen3-4B"
-    base_url: str = "http://localhost:8001"
-    deployment_type: str = "vllm"
+    """Test configuration for complex reasoning tasks with Ollama"""
+    model_name: str = "qwen3:4b"
+    base_url: str = "http://localhost:11434"
+    deployment_type: str = "ollama"
     test_levels: List[int] = None
     test_duration: int = 60  # 1 minute for debugging
     warmup_duration: int = 10  # 10 seconds warmup for debugging
@@ -533,37 +534,17 @@ class ComplexReasoningAgent:
         return (indicator_score * 0.7) + (length_score * 0.3)
 
 
-class VLLMComplexClient:
-    """vLLM client optimized for complex reasoning tasks"""
+class OllamaComplexClient:
+    """Ollama client optimized for complex reasoning tasks"""
     
     def __init__(self, config: TestConfig):
         self.config = config
-        # Convert localhost to 127.0.0.1 to avoid DNS resolution issues in threading
-        if 'localhost' in config.base_url:
-            self.config.base_url = config.base_url.replace('localhost', '127.0.0.1')
-        
-        # Create session with improved connection pooling for threading
-        self.session = requests.Session()
-        # Configure connection pool for better thread safety
-        adapter = requests.adapters.HTTPAdapter(
-            pool_connections=10,
-            pool_maxsize=20,
-            max_retries=3,
-            pool_block=False
-        )
-        self.session.mount('http://', adapter)
-        self.session.mount('https://', adapter)
-        
-        self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive"
-        }
-        if config.api_key:
-            self.headers["Authorization"] = f"Bearer {config.api_key}"
+        # Create Ollama client
+        self.client = ollama.Client(host=config.base_url)
     
     def send_complex_request(self, task_type: str, prompt: str, task_id: str) -> Tuple[bool, float, Optional[str], int, int, int, float]:
         """
-        Send complex reasoning request to vLLM
+        Send complex reasoning request to Ollama
         Returns: (success, completion_time, response_text, prompt_tokens, completion_tokens, total_tokens, memory_usage_mb)
         """
         # Start memory profiling for this request
@@ -576,29 +557,25 @@ class VLLMComplexClient:
             system_prompt = self._get_system_prompt(task_type)
             full_prompt = f"{system_prompt}\n\nTask: {prompt}\n\nPlease provide a detailed step-by-step solution:"
             
-            logger.debug(f"Sending request to {self.config.base_url}/chat for task {task_id} with type {task_type}")
+            logger.debug(f"Sending request to Ollama for task {task_id} with type {task_type}")
             
-            payload = {
-                "model": self.config.model_name,
-                "messages": [
+            # Ollama chat completion
+            response = self.client.chat(
+                model=self.config.model_name,
+                messages=[
                     {
-                        "role": "system", 
+                        "role": "system",
                         "content": system_prompt
                     },
                     {
-                        "role": "user",
+                        "role": "user", 
                         "content": prompt
                     }
                 ],
-                "max_tokens": self.config.max_tokens,
-                "temperature": self.config.temperature
-            }
-            
-            response = self.session.post(
-                f"{self.config.base_url}/chat",
-                json=payload,
-                headers=self.headers,
-                timeout=120  # Longer timeout for complex tasks
+                options={
+                    "temperature": self.config.temperature,
+                    "num_predict": self.config.max_tokens
+                }
             )
             
             end_time = time.time()
@@ -614,51 +591,16 @@ class VLLMComplexClient:
                 except:
                     memory_usage_mb = 0
             
-            if response.status_code == 200:
-                data = response.json()
+            # Extract response text
+            response_text = response.get("message", {}).get("content", "")
+            
+            # Estimate token usage (Ollama doesn't provide exact tokens)
+            prompt_tokens = len(full_prompt.split()) * 1.3  # rough token estimation
+            completion_tokens = len(response_text.split()) * 1.3 if response_text else 0
+            total_tokens = int(prompt_tokens + completion_tokens)
+            
+            return True, completion_time, response_text, int(prompt_tokens), int(completion_tokens), total_tokens, memory_usage_mb
                 
-                # Extract response text (custom vLLM format)
-                response_text = data.get("text", "")
-                
-                # Extract token usage (custom vLLM format)
-                tokens_used = data.get("tokens_used", 0)
-                # Estimate prompt tokens (rough estimation)
-                prompt_tokens = len(full_prompt.split()) * 1.3  # rough token estimation
-                completion_tokens = tokens_used
-                total_tokens = int(prompt_tokens + completion_tokens)
-                
-                return True, completion_time, response_text, int(prompt_tokens), completion_tokens, total_tokens, memory_usage_mb
-            else:
-                logger.error(f"Request failed with status {response.status_code}: {response.text}")
-                return False, completion_time, f"HTTP {response.status_code}: {response.text}", 0, 0, 0, memory_usage_mb
-                
-        except requests.exceptions.Timeout:
-            end_time = time.time()
-            completion_time = end_time - start_time
-            if self.config.enable_memory_profiling:
-                try:
-                    tracemalloc.stop()
-                except:
-                    pass
-            logger.error("Complex task request timed out")
-            return False, completion_time, "Request timeout", 0, 0, 0, 0
-        except requests.exceptions.ConnectionError as e:
-            end_time = time.time()
-            completion_time = end_time - start_time
-            if self.config.enable_memory_profiling:
-                try:
-                    tracemalloc.stop()
-                except:
-                    pass
-            # Special handling for DNS resolution errors
-            if "Failed to resolve" in str(e) or "nodename nor servname provided" in str(e):
-                logger.error(f"DNS resolution failed for {self.config.base_url}. Trying with 127.0.0.1...")
-                # Retry with 127.0.0.1 if localhost fails
-                if 'localhost' in self.config.base_url:
-                    self.config.base_url = self.config.base_url.replace('localhost', '127.0.0.1')
-                    logger.info(f"Retrying with IP address: {self.config.base_url}")
-            logger.error(f"Connection error: {e}")
-            return False, completion_time, f"Connection error: {e}", 0, 0, 0, 0
         except Exception as e:
             end_time = time.time()
             completion_time = end_time - start_time
@@ -680,12 +622,13 @@ class VLLMComplexClient:
         return prompts.get(task_type, "You are a helpful assistant. Provide detailed, accurate responses.")
     
     def check_health(self) -> bool:
-        """Check if vLLM service is healthy"""
+        """Check if Ollama service is healthy"""
         try:
-            logger.info(f"Checking health at {self.config.base_url}/health")
-            response = self.session.get(f"{self.config.base_url}/health", timeout=10)
-            logger.info(f"Health check response: {response.status_code}")
-            return response.status_code == 200
+            logger.info(f"Checking health of Ollama service")
+            # Try to list models to check if service is available
+            models = self.client.list()
+            logger.info(f"Health check successful, found {len(models.get('models', []))} models")
+            return True
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             return False
@@ -700,15 +643,15 @@ class ComplexPerformanceTester:
         self.queue_monitor = QueueMonitor()
     
     def check_service_health(self) -> bool:
-        """Check if vLLM service is available"""
-        client = VLLMComplexClient(self.config)
+        """Check if Ollama service is available"""
+        client = OllamaComplexClient(self.config)
         return client.check_health()
     
     def run_warmup(self) -> None:
         """Run warmup with complex reasoning tasks"""
         logger.info(f"Starting complex reasoning warmup for {self.config.warmup_duration} seconds...")
         
-        client = VLLMComplexClient(self.config)
+        client = OllamaComplexClient(self.config)
         warmup_end = time.time() + self.config.warmup_duration
         warmup_count = 0
         
@@ -722,7 +665,7 @@ class ComplexPerformanceTester:
         
         logger.info(f"Complex reasoning warmup completed with {warmup_count} tasks")
     
-    def run_single_complex_task(self, client: VLLMComplexClient, task_id: str) -> ComplexTaskMetrics:
+    def run_single_complex_task(self, client: OllamaComplexClient, task_id: str) -> ComplexTaskMetrics:
         """Run a single complex reasoning task"""
         # Queue monitoring
         queue_entry_time = self.queue_monitor.add_to_queue()
@@ -784,7 +727,7 @@ class ComplexPerformanceTester:
         # Worker function for complex reasoning
         def complex_worker(worker_id: int) -> List[ComplexTaskMetrics]:
             logger.info(f"Complex reasoning worker {worker_id} started")
-            client = VLLMComplexClient(self.config)
+            client = OllamaComplexClient(self.config)
             worker_metrics = []
             task_count = 0
             
@@ -973,7 +916,7 @@ class ComplexPerformanceTester:
     def run_all_tests(self) -> List[ComplexTestResult]:
         """Run all complex reasoning test levels"""
         logger.info("=" * 80)
-        logger.info("STARTING VLLM COMPLEX REASONING PERFORMANCE TESTS")
+        logger.info("STARTING OLLAMA COMPLEX REASONING PERFORMANCE TESTS")
         logger.info("=" * 80)
         logger.info(f"Model: {self.config.model_name}")
         logger.info(f"Deployment: {self.config.deployment_type}")
@@ -984,10 +927,10 @@ class ComplexPerformanceTester:
         
         # Check service health
         if not self.check_service_health():
-            logger.error("vLLM service is not available. Please check the service.")
+            logger.error("Ollama service is not available. Please check the service.")
             return []
         
-        logger.info("✓ vLLM service is healthy")
+        logger.info("✓ Ollama service is healthy")
         
         # Run warmup
         self.run_warmup()
@@ -1033,7 +976,7 @@ class ComplexPerformanceTester:
         
         # Header
         report.append("=" * 100)
-        report.append("VLLM COMPLEX REASONING PERFORMANCE TEST REPORT - QWEN3-4B")
+        report.append("OLLAMA COMPLEX REASONING PERFORMANCE TEST REPORT - QWEN3-4B")
         report.append("=" * 100)
         report.append(f"Model: {self.config.model_name}")
         report.append(f"Deployment: {self.config.deployment_type}")
@@ -1102,7 +1045,7 @@ class ComplexPerformanceTester:
         report.append("")
         
         # Complex Reasoning Recommendations
-        report.append("COMPLEX REASONING SPECIFIC RECOMMENDATIONS")
+        report.append("OLLAMA COMPLEX REASONING SPECIFIC RECOMMENDATIONS")
         report.append("-" * 50)
         
         best_accuracy_result = max(results, key=lambda r: r.overall_accuracy)
@@ -1118,13 +1061,13 @@ class ComplexPerformanceTester:
             report.append("• High memory usage per request detected - consider optimizing model parameters")
         
         if any(r.avg_queue_wait_time > 5 for r in results):
-            report.append("• High queue wait times detected - consider increasing vLLM workers or optimizing batch processing")
+            report.append("• High queue wait times detected - consider increasing Ollama concurrency settings")
         
         report.append("• For complex reasoning optimization, consider:")
-        report.append("  - Increasing --max-model-len for longer reasoning chains")
-        report.append("  - Using --enable-chunked-prefill for better complex task handling")
-        report.append("  - Adjusting temperature (0.1-0.3) for more consistent reasoning")
-        report.append("  - Implementing request prioritization for different task types")
+        report.append("  - Adjusting OLLAMA_NUM_PARALLEL for better concurrency")
+        report.append("  - Setting OLLAMA_MAX_LOADED_MODELS to optimize memory usage")
+        report.append("  - Using temperature values between 0.1-0.3 for more consistent reasoning")
+        report.append("  - Implementing request batching for similar task types")
         
         report.append("")
         report.append("Complex reasoning test completed successfully!")
@@ -1139,13 +1082,13 @@ class ComplexPerformanceTester:
         
         # Save text report
         report = self.generate_report(results)
-        report_file = os.path.join(output_dir, f"vllm_complex_reasoning_report_{timestamp}.txt")
+        report_file = os.path.join(output_dir, f"ollama_complex_reasoning_report_{timestamp}.txt")
         with open(report_file, 'w', encoding='utf-8') as f:
             f.write(report)
         logger.info(f"Complex reasoning report saved to {report_file}")
         
         # Save JSON data
-        json_file = os.path.join(output_dir, f"vllm_complex_reasoning_data_{timestamp}.json")
+        json_file = os.path.join(output_dir, f"ollama_complex_reasoning_data_{timestamp}.json")
         json_data = {
             "config": asdict(self.config),
             "timestamp": datetime.now().isoformat(),
@@ -1163,9 +1106,9 @@ def main():
     """Main execution function for complex reasoning tests"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="vLLM Complex Reasoning Performance Test - Qwen3-4B")
-    parser.add_argument("--model", default="Qwen/Qwen3-4B", help="Model name")
-    parser.add_argument("--url", default="http://localhost:8001", help="vLLM base URL")
+    parser = argparse.ArgumentParser(description="Ollama Complex Reasoning Performance Test - Qwen3-4B")
+    parser.add_argument("--model", default="qwen3:4b", help="Model name")
+    parser.add_argument("--url", default="http://localhost:11435", help="Ollama base URL")
     parser.add_argument("--levels", nargs="+", type=int, default=[20, 50, 100],
                         help="Concurrency levels for complex reasoning tests")
     parser.add_argument("--duration", type=int, default=60,
@@ -1199,7 +1142,7 @@ def main():
     )
     
     # Log configuration
-    logger.info("vLLM Complex Reasoning Test Configuration:")
+    logger.info("Ollama Complex Reasoning Test Configuration:")
     for key, value in asdict(config).items():
         logger.info(f"  {key}: {value}")
     
@@ -1215,7 +1158,7 @@ def main():
             
             # Print summary
             print("\n" + "="*80)
-            print("VLLM COMPLEX REASONING TEST SUMMARY")
+            print("OLLAMA COMPLEX REASONING TEST SUMMARY")
             print("="*80)
             print(f"Reports saved to:")
             print(f"  - Text report: {report_file}")

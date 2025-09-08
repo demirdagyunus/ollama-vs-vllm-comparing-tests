@@ -1,0 +1,65 @@
+====================================================================================================
+OLLAMA COMPLEX REASONING PERFORMANCE TEST REPORT - QWEN3-4B
+====================================================================================================
+Model: qwen3:4b
+Deployment: ollama
+Base URL: http://localhost:11435
+Test Duration per Level: 180 seconds (3 minutes)
+Max Tokens: 512
+Temperature: 0.1
+Task Types: Mathematical Reasoning, Code Generation/Debugging, Multi-hop QA
+Test Timestamp: 2025-09-08T19:43:10.265993
+
+EXECUTIVE SUMMARY
+--------------------------------------------------
+Total Complex Tasks Processed: 4,659
+Overall Success Rate: 1.37%
+Average Accuracy Score: 64.82%
+Maximum Throughput: 0.01 tasks/s
+
+COMPLEX REASONING PERFORMANCE SUMMARY
+--------------------------------------------------------------------------------------------------------------------------------------------
+Level    Total    Success  Failed  Avg(s)   P95(s)   TPS      Accuracy%  Math%   Code%   QA%     Mem(MB) 
+--------------------------------------------------------------------------------------------------------------------------------------------
+20       184      22       162     953.2    1737.9   0.0      71.8       72.0    71.1    72.5    0.2     
+50       1281     26       1255    1080.4   1952.4   0.0      65.8       42.7    82.0    84.0    0.2     
+100      3194     16       3178    655.0    1130.5   0.0      56.9       30.0    58.0    88.0    0.4     
+
+TASK TYPE PERFORMANCE ANALYSIS
+--------------------------------------------------------------------------------
+Level 20:
+  - Qa: 59 tasks
+  - Math: 70 tasks
+  - Code: 55 tasks
+
+Level 50:
+  - Code: 424 tasks
+  - Qa: 459 tasks
+  - Math: 398 tasks
+
+Level 100:
+  - Qa: 1082 tasks
+  - Code: 1046 tasks
+  - Math: 1066 tasks
+
+QUEUE AND MEMORY ANALYSIS
+--------------------------------------------------------------------------------
+Level    Avg Queue Wait(s)  Max Queue Wait(s)  Peak Memory(MB)
+--------------------------------------------------------------------------------
+20       118.39             1742.28            0.3            
+50       38.34              2056.85            0.3            
+100      17.73              2056.85            0.4            
+
+OLLAMA COMPLEX REASONING SPECIFIC RECOMMENDATIONS
+--------------------------------------------------
+• Best Overall Accuracy: 20 concurrent users (71.8%)
+• Best Throughput: 100 concurrent users (0.01 tasks/s)
+• High queue wait times detected - consider increasing Ollama concurrency settings
+• For complex reasoning optimization, consider:
+  - Adjusting OLLAMA_NUM_PARALLEL for better concurrency
+  - Setting OLLAMA_MAX_LOADED_MODELS to optimize memory usage
+  - Using temperature values between 0.1-0.3 for more consistent reasoning
+  - Implementing request batching for similar task types
+
+Complex reasoning test completed successfully!
+====================================================================================================

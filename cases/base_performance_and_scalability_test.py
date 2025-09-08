@@ -95,7 +95,7 @@ class ResourceMonitor:
             except Exception:
                 self.gpu_readings.append(0)
                 self.gpu_memory_readings.append(0)
-
+            
             time.sleep(1)
 
     def stop_monitoring(self):

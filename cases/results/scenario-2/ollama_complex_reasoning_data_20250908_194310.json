@@ -1,0 +1,185 @@
+{
+  "config": {
+    "model_name": "qwen3:4b",
+    "base_url": "http://localhost:11435",
+    "deployment_type": "ollama",
+    "test_levels": [
+      20,
+      50,
+      100
+    ],
+    "test_duration": 180,
+    "warmup_duration": 10,
+    "cooldown_duration": 60,
+    "max_tokens": 512,
+    "temperature": 0.1,
+    "api_key": null,
+    "enable_accuracy_testing": true,
+    "enable_memory_profiling": true
+  },
+  "timestamp": "2025-09-08T19:43:10.266933",
+  "results": [
+    {
+      "level": 20,
+      "total_tasks": 184,
+      "successful_tasks": 22,
+      "failed_tasks": 162,
+      "avg_completion_time": 953.1993941393765,
+      "p95_completion_time": 1737.9195228099823,
+      "p99_completion_time": 1742.255622882843,
+      "min_completion_time": 85.2602469921112,
+      "max_completion_time": 1742.2766840457916,
+      "overall_accuracy": 0.7181818181818181,
+      "math_accuracy": 0.72,
+      "code_accuracy": 0.7111111111111111,
+      "qa_accuracy": 0.725,
+      "avg_reasoning_steps": 28,
+      "avg_memory_per_request": 0.1696453094482422,
+      "peak_memory_usage": 0.2542257308959961,
+      "avg_queue_wait_time": 118.38665995260943,
+      "max_queue_wait_time": 1742.2769610881805,
+      "throughput": 0.011484616824120981,
+      "error_rate": 88.04347826086956,
+      "avg_cpu_usage": 9.40807651434644,
+      "avg_memory_usage": 59.99962805526036,
+      "avg_gpu_usage": 0,
+      "avg_gpu_memory": 0,
+      "peak_cpu_usage": 96.0,
+      "peak_memory_usage_system": 61.8,
+      "peak_gpu_usage": 0,
+      "peak_gpu_memory": 0,
+      "test_duration": 1915.6059219837189,
+      "avg_tokens_per_second": 6.007498655090193,
+      "total_tokens_generated": 11508,
+      "completion_time_distribution": {
+        "p50": 960.0115774869919,
+        "p75": 1389.042287170887,
+        "p90": 1648.64354159832,
+        "p95": 1737.9195228099823,
+        "p99": 1742.255622882843,
+        "p99.9": 1742.2745779294967
+      },
+      "task_type_distribution": {
+        "qa": 59,
+        "math": 70,
+        "code": 55
+      },
+      "error_types": {
+        "Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download": 162
+      },
+      "reasoning_quality_stats": {
+        "avg": 0.5107954545454545,
+        "min": 0.3,
+        "max": 0.72
+      }
+    },
+    {
+      "level": 50,
+      "total_tasks": 1281,
+      "successful_tasks": 26,
+      "failed_tasks": 1255,
+      "avg_completion_time": 1080.4101580473093,
+      "p95_completion_time": 1952.4012209177017,
+      "p99_completion_time": 2035.649647474289,
+      "min_completion_time": 85.40780115127563,
+      "max_completion_time": 2056.8458960056305,
+      "overall_accuracy": 0.6576923076923077,
+      "math_accuracy": 0.42727272727272725,
+      "code_accuracy": 0.82,
+      "qa_accuracy": 0.84,
+      "avg_reasoning_steps": 29.53846153846154,
+      "avg_memory_per_request": 0.22900867462158203,
+      "peak_memory_usage": 0.32198047637939453,
+      "avg_queue_wait_time": 38.34363618124874,
+      "max_queue_wait_time": 2056.8462488651276,
+      "throughput": 0.011641338264428312,
+      "error_rate": 97.97033567525371,
+      "avg_cpu_usage": 8.290182648401826,
+      "avg_memory_usage": 59.745114155251144,
+      "avg_gpu_usage": 0,
+      "avg_gpu_memory": 0,
+      "peak_cpu_usage": 87.0,
+      "peak_memory_usage_system": 62.1,
+      "peak_gpu_usage": 0,
+      "peak_gpu_memory": 0,
+      "test_duration": 2233.4201970100403,
+      "avg_tokens_per_second": 5.816191694420145,
+      "total_tokens_generated": 12990,
+      "completion_time_distribution": {
+        "p50": 1082.825670003891,
+        "p75": 1574.8362446427345,
+        "p90": 1856.1916118860245,
+        "p95": 1952.4012209177017,
+        "p99": 2035.649647474289,
+        "p99.9": 2054.7262711524963
+      },
+      "task_type_distribution": {
+        "code": 424,
+        "qa": 459,
+        "math": 398
+      },
+      "error_types": {
+        "Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download": 1255
+      },
+      "reasoning_quality_stats": {
+        "avg": 0.5672115384615384,
+        "min": 0.3,
+        "max": 0.72
+      }
+    },
+    {
+      "level": 100,
+      "total_tasks": 3194,
+      "successful_tasks": 16,
+      "failed_tasks": 3178,
+      "avg_completion_time": 654.995130315423,
+      "p95_completion_time": 1130.5300464630127,
+      "p99_completion_time": 1178.8237573623658,
+      "min_completion_time": 84.93714880943298,
+      "max_completion_time": 1190.897185087204,
+      "overall_accuracy": 0.56875,
+      "math_accuracy": 0.3,
+      "code_accuracy": 0.58,
+      "qa_accuracy": 0.88,
+      "avg_reasoning_steps": 28.5625,
+      "avg_memory_per_request": 0.38843822479248047,
+      "peak_memory_usage": 0.38843822479248047,
+      "avg_queue_wait_time": 17.72774837594811,
+      "max_queue_wait_time": 2056.8462488651276,
+      "throughput": 0.01168298064893868,
+      "error_rate": 99.49906073888542,
+      "avg_cpu_usage": 8.757505601194921,
+      "avg_memory_usage": 59.85407020164302,
+      "avg_gpu_usage": 0,
+      "avg_gpu_memory": 0,
+      "peak_cpu_usage": 99.4,
+      "peak_memory_usage_system": 62.7,
+      "peak_gpu_usage": 0,
+      "peak_gpu_memory": 0,
+      "test_duration": 1369.513524055481,
+      "avg_tokens_per_second": 5.789647097839674,
+      "total_tokens_generated": 7929,
+      "completion_time_distribution": {
+        "p50": 661.3640220165253,
+        "p75": 930.2579227685928,
+        "p90": 1069.7784270048141,
+        "p95": 1130.5300464630127,
+        "p99": 1178.8237573623658,
+        "p99.9": 1189.6898423147202
+      },
+      "task_type_distribution": {
+        "qa": 1082,
+        "code": 1046,
+        "math": 1066
+      },
+      "error_types": {
+        "Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download": 3178
+      },
+      "reasoning_quality_stats": {
+        "avg": 0.5253125,
+        "min": 0.3,
+        "max": 0.6499999999999999
+      }
+    }
+  ]
+}
