@@ -1,0 +1,181 @@
+{
+  "config": {
+    "model_name": "qwen3:4b",
+    "base_url": "http://localhost:11435",
+    "deployment_type": "ollama",
+    "test_levels": [
+      50,
+      150
+    ],
+    "test_duration": 180,
+    "warmup_duration": 30,
+    "cooldown_duration": 60,
+    "max_tokens": 512,
+    "temperature": 0.7,
+    "api_key": null,
+    "enable_streaming": true,
+    "enable_batch_mode": true,
+    "enable_conversation_tracking": true,
+    "enable_memory_profiling": true,
+    "enable_bandwidth_tracking": true,
+    "conversation_length": 5,
+    "streaming_chunk_size": 1
+  },
+  "timestamp": "2025-09-09T11:45:50.260450",
+  "results": [
+    {
+      "level": 50,
+      "total_requests": 1500,
+      "successful_requests": 15,
+      "failed_requests": 1485,
+      "total_conversations": 438,
+      "completed_conversations": 257,
+      "avg_completion_time": 671.1882187525431,
+      "p95_completion_time": 1198.4367582798004,
+      "p99_completion_time": 1240.4219341754913,
+      "min_completion_time": 76.4524130821228,
+      "max_completion_time": 1250.918228149414,
+      "avg_time_to_first_token": 576.783547814687,
+      "p95_time_to_first_token": 1104.7879247665405,
+      "p99_time_to_first_token": 1153.7332426071166,
+      "min_time_to_first_token": 0.36594605445861816,
+      "max_time_to_first_token": 1165.9695720672607,
+      "avg_tokens_per_second": 1.34680695339576,
+      "p95_tokens_per_second": 4.108478063341612,
+      "p99_tokens_per_second": 6.106028489984251,
+      "min_tokens_per_second": 0.3437474891033719,
+      "max_tokens_per_second": 6.605416096644912,
+      "avg_conversation_length": 0,
+      "avg_context_retention": 0.0,
+      "avg_response_coherence": 0,
+      "throughput_requests_per_second": 0.010538317817437198,
+      "throughput_conversations_per_second": 0.18055651193875732,
+      "error_rate": 99.0,
+      "avg_bandwidth_per_request": 2409.5333333333333,
+      "total_bandwidth_usage": 36143,
+      "avg_cpu_usage": 8.766030113845025,
+      "avg_memory_usage": 59.34098420859346,
+      "avg_gpu_usage": 0,
+      "avg_gpu_memory": 0,
+      "peak_cpu_usage": 99.8,
+      "peak_memory_usage": 61.3,
+      "peak_gpu_usage": 0,
+      "peak_gpu_memory": 0,
+      "avg_memory_per_request": 0.2500481605529785,
+      "peak_memory_per_request": 0.2566642761230469,
+      "avg_queue_wait_time": 11.671987399895986,
+      "max_queue_wait_time": 1250.9197218418121,
+      "test_duration": 1423.3770759105682,
+      "total_tokens_generated": 7569,
+      "completion_time_distribution": {
+        "p50": 653.8665556907654,
+        "p75": 959.0531091690063,
+        "p90": 1141.0527746200562,
+        "p95": 1198.4367582798004,
+        "p99": 1240.4219341754913
+      },
+      "ttft_distribution": {
+        "p50": 555.7574329376221,
+        "p75": 863.1108590364456,
+        "p90": 1043.8893460273741,
+        "p95": 1104.7879247665405,
+        "p99": 1153.7332426071166
+      },
+      "tokens_per_second_distribution": {
+        "p50": 0.7493883816742216,
+        "p75": 1.225715706057939,
+        "p90": 2.653457253106843,
+        "p95": 4.108478063341612,
+        "p99": 6.106028489984251
+      },
+      "task_type_distribution": {
+        "streaming": 1500
+      },
+      "error_types": {
+        "[Errno 8] nodename nor servname provided, or not known": 1485
+      },
+      "streaming_quality_stats": {
+        "avg_chunks": 506.8666666666667,
+        "max_chunks": 512,
+        "total_streaming_requests": 15
+      }
+    },
+    {
+      "level": 150,
+      "total_requests": 4692,
+      "successful_requests": 19,
+      "failed_requests": 4673,
+      "total_conversations": 1362,
+      "completed_conversations": 729,
+      "avg_completion_time": 897.7430429835068,
+      "p95_completion_time": 1573.8002163887022,
+      "p99_completion_time": 1626.341930332184,
+      "min_completion_time": 95.07259702682495,
+      "max_completion_time": 1639.4773588180542,
+      "avg_time_to_first_token": 803.0481995657871,
+      "p95_time_to_first_token": 1477.471002793312,
+      "p99_time_to_first_token": 1532.4471619081498,
+      "min_time_to_first_token": 0.37218403816223145,
+      "max_time_to_first_token": 1546.1912016868591,
+      "avg_tokens_per_second": 0.9299460161667517,
+      "p95_tokens_per_second": 2.455121302048819,
+      "p99_tokens_per_second": 4.378579787011364,
+      "min_tokens_per_second": 0.2802420859364989,
+      "max_tokens_per_second": 4.859444408251997,
+      "avg_conversation_length": 0,
+      "avg_context_retention": 0.0,
+      "avg_response_coherence": 0,
+      "throughput_requests_per_second": 0.010491308271781685,
+      "throughput_conversations_per_second": 0.4025349331646762,
+      "error_rate": 99.59505541346974,
+      "avg_bandwidth_per_request": 2364.842105263158,
+      "total_bandwidth_usage": 44932,
+      "avg_cpu_usage": 10.177638848502472,
+      "avg_memory_usage": 58.916167490549576,
+      "avg_gpu_usage": 0,
+      "avg_gpu_memory": 0,
+      "peak_cpu_usage": 99.6,
+      "peak_memory_usage": 61.7,
+      "peak_gpu_usage": 0,
+      "peak_gpu_memory": 0,
+      "avg_memory_per_request": 0.9431180953979492,
+      "peak_memory_per_request": 0.9431180953979492,
+      "avg_queue_wait_time": 9.371361568801163,
+      "max_queue_wait_time": 1639.4792649745941,
+      "test_duration": 1811.022944688797,
+      "total_tokens_generated": 9211,
+      "completion_time_distribution": {
+        "p50": 920.57421708107,
+        "p75": 1275.4323389530182,
+        "p90": 1497.1879808425904,
+        "p95": 1573.8002163887022,
+        "p99": 1626.341930332184
+      },
+      "ttft_distribution": {
+        "p50": 823.4994821548462,
+        "p75": 1180.1713458299637,
+        "p90": 1400.1019082546234,
+        "p95": 1477.471002793312,
+        "p99": 1532.4471619081498
+      },
+      "tokens_per_second_distribution": {
+        "p50": 0.514896019468094,
+        "p75": 0.9544756305547202,
+        "p90": 1.7111854485424272,
+        "p95": 2.455121302048819,
+        "p99": 4.378579787011364
+      },
+      "task_type_distribution": {
+        "streaming": 4692
+      },
+      "error_types": {
+        "[Errno 8] nodename nor servname provided, or not known": 4673
+      },
+      "streaming_quality_stats": {
+        "avg_chunks": 507.05263157894734,
+        "max_chunks": 512,
+        "total_streaming_requests": 19
+      }
+    }
+  ]
+}

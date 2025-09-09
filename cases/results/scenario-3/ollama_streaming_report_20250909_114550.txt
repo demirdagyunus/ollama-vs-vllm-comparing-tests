@@ -1,0 +1,70 @@
+====================================================================================================
+OLLAMA STREAMING & CONVERSATIONAL PERFORMANCE TEST REPORT - QWEN3-4B
+====================================================================================================
+Model: qwen3:4b
+Deployment: ollama
+Base URL: http://localhost:11435
+Test Duration per Level: 180 seconds (3 minutes)
+Max Tokens: 512
+Temperature: 0.7
+Streaming Enabled: True
+Conversation Length: 5 turns
+Test Timestamp: 2025-09-09T11:45:50.260064
+
+EXECUTIVE SUMMARY
+--------------------------------------------------
+Total Requests Processed: 6,192
+Overall Success Rate: 0.55%
+Total Conversations: 1800
+Average Time to First Token: 689.916s
+Maximum Throughput: 0.01 requests/s
+
+STREAMING PERFORMANCE SUMMARY
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Level    Requests  Success   Failed   Convs   RPS     TTFT(s)   TPS     Bandwidth   Coherence  Memory  
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+50       1500      15        1485     438     0.0     576.784   1.3     2.4         0.0        0.3     
+150      4692      19        4673     1362    0.0     803.048   0.9     2.3         0.0        0.9     
+
+DETAILED STREAMING METRICS
+--------------------------------------------------------------------------------
+Level 50:
+  - P95 TTFT: 1104.788s
+  - P99 TTFT: 1153.733s
+  - P95 TPS: 4.1
+  - P99 TPS: 6.1
+  - Context Retention: 0.0%
+  - Total Bandwidth: 0.0 MB
+
+Level 150:
+  - P95 TTFT: 1477.471s
+  - P99 TTFT: 1532.447s
+  - P95 TPS: 2.5
+  - P99 TPS: 4.4
+  - Context Retention: 0.0%
+  - Total Bandwidth: 0.0 MB
+
+RESOURCE USAGE ANALYSIS
+--------------------------------------------------------------------------------
+Level    CPU%     Memory%    GPU%     GPU Mem%   Network MB  
+--------------------------------------------------------------------------------
+50       8.8      59.3       0.0      0.0        0.0         
+150      10.2     58.9       0.0      0.0        0.0         
+
+OLLAMA STREAMING SPECIFIC RECOMMENDATIONS
+--------------------------------------------------
+• Best TTFT Performance: 50 concurrent users (576.784s)
+• Best Token Throughput: 50 concurrent users (1.3 tokens/s)
+• Best Conversation Coherence: 50 concurrent users (0.0%)
+• High TTFT detected - consider optimizing model loading or increasing OLLAMA_NUM_PARALLEL
+• Low token generation speed - consider GPU optimization or model quantization
+• Low conversation coherence - consider adjusting temperature or context window
+• For streaming optimization, consider:
+  - Enabling OLLAMA_FLASH_ATTENTION for faster token generation
+  - Setting OLLAMA_NUM_PARALLEL to match your CPU cores
+  - Using OLLAMA_MAX_LOADED_MODELS=1 for consistent streaming performance
+  - Implementing client-side chunking for better user experience
+  - Consider WebSocket connections for real-time streaming
+
+Streaming and conversational test completed successfully!
+====================================================================================================
