@@ -1,0 +1,750 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario-2 Complex Reasoning Comparison: Ollama vs VLLM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+        .ollama-card {
+            border-left-color: #ff6b6b;
+        }
+        .vllm-card {
+            border-left-color: #4ecdc4;
+        }
+        .summary-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.3em;
+            color: #333;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            color: #666;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .charts {
+            padding: 30px;
+        }
+        .chart-container {
+            margin: 30px 0;
+            height: 400px;
+            position: relative;
+        }
+        .chart-title {
+            text-align: center;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 500;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        .chart-container-small {
+            height: 300px;
+            position: relative;
+        }
+        .detailed-table {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .table-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .performance-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .better {
+            background: #d4edda;
+            color: #155724;
+        }
+        .worse {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        .comparison-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: white;
+        }
+        .highlight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .highlight-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .highlight-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        .error-indicator {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+        .success-indicator {
+            background: #d4edda;
+            color: #155724;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Scenario-2 Complex Reasoning Report</h1>
+            <p>Ollama vs VLLM Complex Reasoning Performance Comparison</p>
+            <p>Model: qwen3:4b vs Qwen/Qwen3-4B | Generated: 2025-09-10 22:09:08</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card ollama-card">
+                <h3>🦙 Ollama Performance</h3>
+                <div class="metric">
+                    <span class="metric-label">Total Tasks:</span>
+                    <span class="metric-value">4,659</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Successful Tasks:</span>
+                    <span class="metric-value">64</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Accuracy:</span>
+                    <span class="metric-value">64.8%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Throughput:</span>
+                    <span class="metric-value">0.012 tasks/s</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Tokens/sec:</span>
+                    <span class="metric-value">5.9</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Error Rate:</span>
+                    <span class="metric-value">95.2%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Reasoning Steps:</span>
+                    <span class="metric-value">28.7</span>
+                </div>
+            </div>
+
+            <div class="summary-card vllm-card">
+                <h3>⚡ VLLM Performance</h3>
+                <div class="metric">
+                    <span class="metric-label">Total Tasks:</span>
+                    <span class="metric-value">746</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Successful Tasks:</span>
+                    <span class="metric-value">746</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Accuracy:</span>
+                    <span class="metric-value">59.3%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Throughput:</span>
+                    <span class="metric-value">1.073 tasks/s</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Tokens/sec:</span>
+                    <span class="metric-value">607.8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Error Rate:</span>
+                    <span class="metric-value">0.0%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Reasoning Steps:</span>
+                    <span class="metric-value">28.7</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-highlights">
+            <div class="highlight-card">
+                <div class="highlight-label">Accuracy Winner</div>
+                <div class="highlight-value">Ollama</div>
+                <div class="highlight-label">64.8%</div>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Throughput Winner</div>
+                <div class="highlight-value">VLLM</div>
+                <div class="highlight-label">1.073 tasks/s</div>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Reliability Winner</div>
+                <div class="highlight-value">VLLM</div>
+                <div class="highlight-label">0.0% error rate</div>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Total Tasks</div>
+                <div class="highlight-value">5,405</div>
+                <div class="highlight-label">Complex Reasoning Tasks</div>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Success Rate</div>
+                <div class="highlight-value">VLLM</div>
+                <div class="highlight-label">100.0%</div>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-title">🎯 Overall Accuracy Comparison (Higher is Better)</div>
+            <div class="chart-container">
+                <canvas id="accuracyChart"></canvas>
+            </div>
+
+            <div class="charts-grid">
+                <div>
+                    <div class="chart-title">⏱️ Completion Time (Lower is Better)</div>
+                    <div class="chart-container-small">
+                        <canvas id="completionTimeChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <div class="chart-title">🚀 Throughput (Higher is Better)</div>
+                    <div class="chart-container-small">
+                        <canvas id="throughputChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-title">📊 Task Type Accuracy Comparison</div>
+            <div class="charts-grid">
+                <div>
+                    <div class="chart-title">🧮 Math Accuracy</div>
+                    <div class="chart-container-small">
+                        <canvas id="mathAccuracyChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <div class="chart-title">💻 Code Accuracy</div>
+                    <div class="chart-container-small">
+                        <canvas id="codeAccuracyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div>
+                    <div class="chart-title">❓ QA Accuracy</div>
+                    <div class="chart-container-small">
+                        <canvas id="qaAccuracyChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <div class="chart-title">❌ Error Rate (Lower is Better)</div>
+                    <div class="chart-container-small">
+                        <canvas id="errorRateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detailed-table">
+            <div class="table-title">📋 Detailed Complex Reasoning Performance Comparison</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Platform</th>
+                        <th>Tasks</th>
+                        <th>Success</th>
+                        <th>Overall Acc.%</th>
+                        <th>Math%</th>
+                        <th>Code%</th>
+                        <th>QA%</th>
+                        <th>Avg Time(s)</th>
+                        <th>TPS</th>
+                        <th>Error Rate%</th>
+                        <th>Tokens/s</th>
+                        <th>Reasoning Steps</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td rowspan="2" style="vertical-align: middle; font-weight: bold; background: #f8f9fa;">20</td>
+                        <td><strong>🦙 Ollama</strong></td>
+                        <td>184</td>
+                        <td><span class="success-indicator">22</span></td>
+                        <td><span class="performance-indicator better">71.8</span></td>
+                        <td>72.0</td>
+                        <td>71.1</td>
+                        <td>72.5</td>
+                        <td><span class="performance-indicator worse">953.2</span></td>
+                        <td><span class="performance-indicator worse">0.011</span></td>
+                        <td><span class="performance-indicator worse">88.0</span></td>
+                        <td><span class="performance-indicator worse">6.0</span></td>
+                        <td>28.0</td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚡ VLLM</strong></td>
+                        <td>212</td>
+                        <td><span class="success-indicator">212</span></td>
+                        <td><span class="performance-indicator worse">56.9</span></td>
+                        <td>35.2</td>
+                        <td>65.7</td>
+                        <td>74.1</td>
+                        <td><span class="performance-indicator better">17.7</span></td>
+                        <td><span class="performance-indicator better">1.072</span></td>
+                        <td><span class="performance-indicator better">0.0</span></td>
+                        <td><span class="performance-indicator better">607.3</span></td>
+                        <td>28.6</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" style="vertical-align: middle; font-weight: bold; background: #f8f9fa;">50</td>
+                        <td><strong>🦙 Ollama</strong></td>
+                        <td>1281</td>
+                        <td><span class="success-indicator">26</span></td>
+                        <td><span class="performance-indicator better">65.8</span></td>
+                        <td>42.7</td>
+                        <td>82.0</td>
+                        <td>84.0</td>
+                        <td><span class="performance-indicator worse">1080.4</span></td>
+                        <td><span class="performance-indicator worse">0.012</span></td>
+                        <td><span class="performance-indicator worse">98.0</span></td>
+                        <td><span class="performance-indicator worse">5.8</span></td>
+                        <td>29.5</td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚡ VLLM</strong></td>
+                        <td>242</td>
+                        <td><span class="success-indicator">242</span></td>
+                        <td><span class="performance-indicator worse">62.5</span></td>
+                        <td>44.0</td>
+                        <td>69.1</td>
+                        <td>74.2</td>
+                        <td><span class="performance-indicator better">41.5</span></td>
+                        <td><span class="performance-indicator better">1.066</span></td>
+                        <td><span class="performance-indicator better">0.0</span></td>
+                        <td><span class="performance-indicator better">603.8</span></td>
+                        <td>28.9</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" style="vertical-align: middle; font-weight: bold; background: #f8f9fa;">100</td>
+                        <td><strong>🦙 Ollama</strong></td>
+                        <td>3194</td>
+                        <td><span class="success-indicator">16</span></td>
+                        <td><span class="performance-indicator worse">56.9</span></td>
+                        <td>30.0</td>
+                        <td>58.0</td>
+                        <td>88.0</td>
+                        <td><span class="performance-indicator worse">655.0</span></td>
+                        <td><span class="performance-indicator worse">0.012</span></td>
+                        <td><span class="performance-indicator worse">99.5</span></td>
+                        <td><span class="performance-indicator worse">5.8</span></td>
+                        <td>28.6</td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚡ VLLM</strong></td>
+                        <td>292</td>
+                        <td><span class="success-indicator">292</span></td>
+                        <td><span class="performance-indicator better">58.4</span></td>
+                        <td>40.7</td>
+                        <td>67.3</td>
+                        <td>69.3</td>
+                        <td><span class="performance-indicator better">76.6</span></td>
+                        <td><span class="performance-indicator better">1.081</span></td>
+                        <td><span class="performance-indicator better">0.0</span></td>
+                        <td><span class="performance-indicator better">612.4</span></td>
+                        <td>28.7</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Complex reasoning report generated on 2025-09-10 at 22:09:08 | 
+            Ollama Test: 2025-09-08T19:43:10 | 
+            VLLM Test: 2025-09-08T17:22:33</p>
+        </div>
+    </div>
+
+    <script>
+        // Chart konfigürasyonu
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        };
+
+        // Overall Accuracy Chart
+        new Chart(document.getElementById('accuracyChart'), {
+            type: 'line',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [71.81818181818181, 65.76923076923077, 56.875],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '⚡ VLLM',
+                    data: [56.93396226415094, 62.52066115702479, 58.390410958904106],
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Accuracy (%)'
+                        },
+                        max: 100
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Completion Time Chart
+        new Chart(document.getElementById('completionTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [953.1993941393765, 1080.4101580473093, 654.995130315423],
+                    backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 2
+                }, {
+                    label: '⚡ VLLM',
+                    data: [17.672112223112357, 41.53243124485016, 76.64115270931427],
+                    backgroundColor: 'rgba(78, 205, 196, 0.7)',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Completion Time (s)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Throughput Chart
+        new Chart(document.getElementById('throughputChart'), {
+            type: 'bar',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [0.011484616824120981, 0.011641338264428312, 0.01168298064893868],
+                    backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 2
+                }, {
+                    label: '⚡ VLLM',
+                    data: [1.0718561002014888, 1.0657598102289816, 1.0807361856242652],
+                    backgroundColor: 'rgba(78, 205, 196, 0.7)',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Tasks per Second'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Math Accuracy Chart
+        new Chart(document.getElementById('mathAccuracyChart'), {
+            type: 'line',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [72.0, 42.72727272727273, 30.0],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '⚡ VLLM',
+                    data: [35.25, 44.0, 40.666666666666664],
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Math Accuracy (%)'
+                        },
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Code Accuracy Chart
+        new Chart(document.getElementById('codeAccuracyChart'), {
+            type: 'line',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [71.11111111111111, 82.0, 57.99999999999999],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '⚡ VLLM',
+                    data: [65.71428571428571, 69.1358024691358, 67.30337078651687],
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Code Accuracy (%)'
+                        },
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // QA Accuracy Chart
+        new Chart(document.getElementById('qaAccuracyChart'), {
+            type: 'line',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [72.5, 84.0, 88.0],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '⚡ VLLM',
+                    data: [74.05797101449275, 74.19753086419753, 69.28571428571428],
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'QA Accuracy (%)'
+                        },
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Error Rate Chart
+        new Chart(document.getElementById('errorRateChart'), {
+            type: 'bar',
+            data: {
+                labels: [20, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [88.04347826086956, 97.97033567525371, 99.49906073888542],
+                    backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 2
+                }, {
+                    label: '⚡ VLLM',
+                    data: [0.0, 0.0, 0.0],
+                    backgroundColor: 'rgba(78, 205, 196, 0.7)',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Error Rate (%)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

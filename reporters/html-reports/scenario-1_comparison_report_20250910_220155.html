@@ -1,0 +1,505 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario-1 Performance Comparison: Ollama vs VLLM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+        .ollama-card {
+            border-left-color: #ff6b6b;
+        }
+        .vllm-card {
+            border-left-color: #4ecdc4;
+        }
+        .summary-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.3em;
+            color: #333;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            color: #666;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .charts {
+            padding: 30px;
+        }
+        .chart-container {
+            margin: 30px 0;
+            height: 400px;
+            position: relative;
+        }
+        .chart-title {
+            text-align: center;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 500;
+        }
+        .detailed-table {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .table-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .performance-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .better {
+            background: #d4edda;
+            color: #155724;
+        }
+        .worse {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        .comparison-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: white;
+        }
+        .highlight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .highlight-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .highlight-label {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Scenario-1 Performance Report</h1>
+            <p>Ollama vs VLLM Performance Comparison</p>
+            <p>Model: qwen3:4b | Generated: 2025-09-10 22:01:55</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card ollama-card">
+                <h3>🦙 Ollama Performance</h3>
+                <div class="metric">
+                    <span class="metric-label">Total Requests:</span>
+                    <span class="metric-value">178</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Successful Requests:</span>
+                    <span class="metric-value">178</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Throughput:</span>
+                    <span class="metric-value">0.039 req/s</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Tokens/sec:</span>
+                    <span class="metric-value">4.7</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Success Rate:</span>
+                    <span class="metric-value">100.0%</span>
+                </div>
+            </div>
+
+            <div class="summary-card vllm-card">
+                <h3>⚡ VLLM Performance</h3>
+                <div class="metric">
+                    <span class="metric-label">Total Requests:</span>
+                    <span class="metric-value">1,944</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Successful Requests:</span>
+                    <span class="metric-value">1,944</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Throughput:</span>
+                    <span class="metric-value">3.320 req/s</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Tokens/sec:</span>
+                    <span class="metric-value">498.0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Success Rate:</span>
+                    <span class="metric-value">100.0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-highlights">
+            <div class="highlight-card">
+                <div class="highlight-label">Throughput Winner</div>
+                <div class="highlight-value">VLLM</div>
+                <div class="highlight-label">3.320 req/s</div>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Tokens/sec Winner</div>
+                <div class="highlight-value">VLLM</div>
+                <div class="highlight-label">498.0 tokens/s</div>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Total Requests</div>
+                <div class="highlight-value">2,122</div>
+                <div class="highlight-label">Processed Successfully</div>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-title">📊 Latency Comparison (Lower is Better)</div>
+            <div class="chart-container">
+                <canvas id="latencyChart"></canvas>
+            </div>
+
+            <div class="chart-title">🚀 Throughput Comparison (Higher is Better)</div>
+            <div class="chart-container">
+                <canvas id="throughputChart"></canvas>
+            </div>
+
+            <div class="chart-title">⚡ Tokens per Second Comparison (Higher is Better)</div>
+            <div class="chart-container">
+                <canvas id="tokensChart"></canvas>
+            </div>
+        </div>
+
+        <div class="detailed-table">
+            <div class="table-title">📋 Detailed Performance Comparison</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Concurrent Users</th>
+                        <th>Platform</th>
+                        <th>Total Requests</th>
+                        <th>Avg Latency (ms)</th>
+                        <th>P95 Latency (ms)</th>
+                        <th>Throughput (req/s)</th>
+                        <th>Tokens/sec</th>
+                        <th>CPU Usage (%)</th>
+                        <th>Memory Usage (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td rowspan="2" style="vertical-align: middle; font-weight: bold; background: #f8f9fa;">10</td>
+                        <td><strong>🦙 Ollama</strong></td>
+                        <td>16</td>
+                        <td><span class="performance-indicator worse">186.1</span></td>
+                        <td>259.5</td>
+                        <td><span class="performance-indicator worse">0.038</span></td>
+                        <td><span class="performance-indicator worse">4.7</span></td>
+                        <td>16.1</td>
+                        <td>74.9</td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚡ VLLM</strong></td>
+                        <td>450</td>
+                        <td><span class="performance-indicator better">3.9</span></td>
+                        <td>4.0</td>
+                        <td><span class="performance-indicator better">2.478</span></td>
+                        <td><span class="performance-indicator better">371.8</span></td>
+                        <td>35.5</td>
+                        <td>73.9</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" style="vertical-align: middle; font-weight: bold; background: #f8f9fa;">50</td>
+                        <td><strong>🦙 Ollama</strong></td>
+                        <td>56</td>
+                        <td><span class="performance-indicator worse">727.7</span></td>
+                        <td>1289.4</td>
+                        <td><span class="performance-indicator worse">0.039</span></td>
+                        <td><span class="performance-indicator worse">4.7</span></td>
+                        <td>16.9</td>
+                        <td>76.4</td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚡ VLLM</strong></td>
+                        <td>722</td>
+                        <td><span class="performance-indicator better">12.7</span></td>
+                        <td>16.6</td>
+                        <td><span class="performance-indicator better">3.751</span></td>
+                        <td><span class="performance-indicator better">562.7</span></td>
+                        <td>17.2</td>
+                        <td>74.5</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" style="vertical-align: middle; font-weight: bold; background: #f8f9fa;">100</td>
+                        <td><strong>🦙 Ollama</strong></td>
+                        <td>106</td>
+                        <td><span class="performance-indicator worse">1325.9</span></td>
+                        <td>2484.2</td>
+                        <td><span class="performance-indicator worse">0.040</span></td>
+                        <td><span class="performance-indicator worse">4.9</span></td>
+                        <td>21.9</td>
+                        <td>81.4</td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚡ VLLM</strong></td>
+                        <td>772</td>
+                        <td><span class="performance-indicator better">24.9</span></td>
+                        <td>29.6</td>
+                        <td><span class="performance-indicator better">3.730</span></td>
+                        <td><span class="performance-indicator better">559.4</span></td>
+                        <td>37.5</td>
+                        <td>73.3</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Report generated on 2025-09-10 at 22:01:55 | 
+            Ollama Test: 2025-09-03T11:33:20 | 
+            VLLM Test: 2025-09-05T10:18:18</p>
+        </div>
+    </div>
+
+    <script>
+        // Chart konfigürasyonu
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        };
+
+        // Latency Chart
+        new Chart(document.getElementById('latencyChart'), {
+            type: 'line',
+            data: {
+                labels: [10, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [186.1250091344118, 727.7203134553773, 1325.855098654639],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '⚡ VLLM',
+                    data: [3.9223920424779255, 12.707971810964336, 24.935297319308464],
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Latency (ms)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Throughput Chart
+        new Chart(document.getElementById('throughputChart'), {
+            type: 'bar',
+            data: {
+                labels: [10, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [0.03847137717689503, 0.038782556560856475, 0.04013764641865274],
+                    backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 2
+                }, {
+                    label: '⚡ VLLM',
+                    data: [2.4784955505450963, 3.7513935302126837, 3.729552269234289],
+                    backgroundColor: 'rgba(78, 205, 196, 0.7)',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Requests per Second'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Tokens per Second Chart
+        new Chart(document.getElementById('tokensChart'), {
+            type: 'bar',
+            data: {
+                labels: [10, 50, 100],
+                datasets: [{
+                    label: '🦙 Ollama',
+                    data: [4.664654482698522, 4.653214241649905, 4.854004617365184],
+                    backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 2
+                }, {
+                    label: '⚡ VLLM',
+                    data: [371.77433258176444, 562.7090295319025, 559.4328403851433],
+                    backgroundColor: 'rgba(78, 205, 196, 0.7)',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        title: {
+                            display: true,
+                            text: 'Tokens per Second'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

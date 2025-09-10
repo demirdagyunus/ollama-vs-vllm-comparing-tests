@@ -1,0 +1,666 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario-4: vLLM Stress Testing & Load Scalability Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff9ff3 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .test-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .info-card h3 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .ollama-failure-note {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .ollama-failure-note h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .performance-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .metric-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 15px 0;
+        }
+        
+        .metric-unit {
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+        
+        .breaking-point {
+            color: #e74c3c !important;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .chart-container h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+        
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+        }
+        
+        .analysis-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        
+        .stress-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-top: 4px solid #e74c3c;
+        }
+        
+        .summary-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .recommendations {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .recommendations h3 {
+            color: #8b7355;
+            margin-bottom: 15px;
+        }
+        
+        .recommendations ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .recommendations li {
+            background: #fff;
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            color: #7f8c8d;
+        }
+        
+        .status-good { color: #27ae60; }
+        .status-warning { color: #f39c12; }
+        .status-critical { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Scenario-4: vLLM Stress Testing Analysis</h1>
+            <div class="subtitle">Load Scalability & Performance Under Pressure</div>
+            
+            
+        <div class="ollama-failure-note">
+            <h3>⚠️ Ollama Test Durumu</h3>
+            <p><strong>Ollama bu stress test senaryosunda başarısız olmuştur.</strong></p>
+            <p>Bu nedenle sadece vLLM sonuçları analiz edilmiştir. Karşılaştırmalı analiz mümkün olmamıştır.</p>
+        </div>
+        
+            
+            <div class="test-info">
+                <div class="info-card">
+                    <h3>Model</h3>
+                    <p>Qwen/Qwen3-4B</p>
+                </div>
+                <div class="info-card">
+                    <h3>Test Type</h3>
+                    <p>Stress Testing</p>
+                </div>
+                <div class="info-card">
+                    <h3>Max Tokens</h3>
+                    <p>256</p>
+                </div>
+                <div class="info-card">
+                    <h3>Temperature</h3>
+                    <p>0.3</p>
+                </div>
+                <div class="info-card">
+                    <h3>Breaking Point</h3>
+                    <p class="breaking-point">Not found users</p>
+                </div>
+                <div class="info-card">
+                    <h3>Generated</h3>
+                    <p>2025-09-10 22:26</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="performance-overview">
+            <div class="metric-card">
+                <h3>🎯 Total Requests Processed</h3>
+                <div class="metric-value">453</div>
+                <p class="metric-unit">requests</p>
+                <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                    Success Rate: 100.0%
+                </p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>⚡ Average Response Time</h3>
+                <div class="metric-value">20.96s</div>
+                <p class="metric-unit">seconds</p>
+                <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                    Best: 20.96s
+                </p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>📊 Peak Throughput</h3>
+                <div class="metric-value">2.24</div>
+                <p class="metric-unit">requests/second</p>
+                <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                    Average: 2.24 req/s
+                </p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>🔥 Breaking Point</h3>
+                <div class="metric-value breaking-point">Not found</div>
+                <p class="metric-unit">concurrent users</p>
+                <p style="font-size: 0.9em; color: #e74c3c; margin-top: 10px;">
+                    Unknown...
+                </p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>⏱️ Endurance Test</h3>
+                <div class="metric-value">0.0h</div>
+                <p class="metric-unit">duration</p>
+                <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                    0 requests - 0.0% success
+                </p>
+            </div>
+            
+            <div class="metric-card">
+                <h3>🧠 Memory Growth</h3>
+                <div class="metric-value status-good">0.0</div>
+                <p class="metric-unit">MB/hour</p>
+                <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                    Trend: unknown
+                </p>
+            </div>
+        </div>
+
+        <div class="stress-summary">
+            <div class="summary-card">
+                <h4>📈 Gradual Load Test</h4>
+                <p><strong>Load Levels:</strong> 1 levels tested</p>
+                <p><strong>Max Load:</strong> 50 users</p>
+                <p><strong>Total Duration:</strong> 3.4 minutes</p>
+            </div>
+            
+            <div class="summary-card">
+                <h4>⚡ Spike Test Results</h4>
+                <p><strong>Spike Tests:</strong> 0 conducted</p>
+                <p><strong>Peak Spike:</strong> 0 users</p>
+                <p><strong>Recovery Time:</strong> Analyzed post-spike</p>
+            </div>
+            
+            <div class="summary-card">
+                <h4>🔄 Endurance Results</h4>
+                <p><strong>Duration:</strong> 0.0 hours</p>
+                <p><strong>Avg Latency:</strong> 0.00s</p>
+                <p><strong>Consistency:</strong> 0.0% success rate</p>
+            </div>
+            
+            <div class="summary-card">
+                <h4>🛡️ Stability Analysis</h4>
+                <p><strong>Error Rate:</strong> 0.00%</p>
+                <p><strong>Memory Stability:</strong> ✅ Good</p>
+                <p><strong>Load Tolerance:</strong> Up to Not found users</p>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>📊 Load vs Response Time</h3>
+                <canvas id="loadLatencyChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>🚀 Throughput Analysis</h3>
+                <canvas id="throughputChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>❌ Error Rate Under Load</h3>
+                <canvas id="errorRateChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>⚡ Spike Test Results</h3>
+                <canvas id="spikeChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>🧠 Memory Usage Over Time</h3>
+                <canvas id="memoryChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>📈 Performance Degradation</h3>
+                <canvas id="degradationChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>🔍 Stress Test Analysis & Insights</h2>
+            
+            <h3>🎯 Key Findings:</h3>
+            <ul style="margin: 20px 0; padding-left: 20px;">
+                <li><strong>Breaking Point:</strong> System reached its limit at Not found concurrent users</li>
+                <li><strong>Reason for Failure:</strong> Unknown</li>
+                <li><strong>Stable Performance:</strong> Best performance observed at lower load levels</li>
+                <li><strong>Memory Behavior:</strong> unknown trend with 0.0 MB/hour growth</li>
+                <li><strong>Endurance Capability:</strong> Maintained 0.0% success rate during 0.0 hour test</li>
+                <li><strong>Peak Efficiency:</strong> Achieved 2.24 req/s maximum throughput</li>
+            </ul>
+            
+            <div class="recommendations">
+                <h3>🎯 Performance Optimization Recommendations</h3>
+                <ul>
+                    <li>Yüksek latency - --max-num-seqs parametresini artırmayı deneyin</li><li>GPU memory optimizasyonu için --enable-chunked-prefill kullanın</li><li>Düşük throughput - --tensor-parallel-size kullanarak model paralelliği artırın</li><li>--enable-prefix-caching ile performansı artırın</li><li>Endurance test başarı oranı düşük - sistem kararlılığını kontrol edin</li>
+                    <li>Implement circuit breakers to prevent system overload</li>
+                    <li>Set up auto-scaling triggers before breaking point</li>
+                    <li>Monitor memory growth patterns in production</li>
+                    <li>Consider load balancing across multiple vLLM instances</li>
+                    <li>Implement graceful degradation strategies for high load</li>
+                </ul>
+            </div>
+            
+            <div style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                <h3 style="color: #2e7d32; margin-bottom: 15px;">✅ Production Deployment Guidelines</h3>
+                <p><strong>Recommended Max Load:</strong> TBD concurrent users (70% of breaking point)</p>
+                <p><strong>Monitoring Thresholds:</strong> Alert when latency > 31.4s or error rate > 2%</p>
+                <p><strong>Scaling Strategy:</strong> Auto-scale at 60% of breaking point load</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated on 2025-09-10 at 22:26:07 | Scenario-4 Stress Testing Analysis</p>
+            <p>🔥 This report analyzes vLLM's behavior under extreme load conditions</p>
+            <p>⚠️ Ollama failed to complete this stress test scenario</p>
+        </div>
+    </div>
+
+    <script>
+        const chartData = {"load_levels": [50], "latencies": [20.95823207333125], "throughputs": [2.242466105505968], "error_rates": [0.0], "success_rates": [100.0], "token_speeds": [12.363255268458536], "p95_latencies": [24.082024574279785], "spike_labels": [], "spike_latencies": [], "spike_throughputs": [], "spike_error_rates": [], "memory_timestamps": [], "memory_usage": []};
+        
+        // Load vs Latency Chart
+        const loadLatencyCtx = document.getElementById('loadLatencyChart').getContext('2d');
+        new Chart(loadLatencyCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.load_levels,
+                datasets: [{
+                    label: 'Average Latency (s)',
+                    data: chartData.latencies,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'P95 Latency (s)',
+                    data: chartData.p95_latencies,
+                    borderColor: '#c0392b',
+                    backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                    tension: 0.4,
+                    borderDash: [5, 5]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Latency increases with load - Shows breaking point'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Response Time (seconds)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Throughput Chart
+        const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+        new Chart(throughputCtx, {
+            type: 'bar',
+            data: {
+                labels: chartData.load_levels,
+                datasets: [{
+                    label: 'Throughput (req/s)',
+                    data: chartData.throughputs,
+                    backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                    borderColor: '#27ae60',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Throughput Under Different Load Levels'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Requests per Second'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Error Rate Chart
+        const errorRateCtx = document.getElementById('errorRateChart').getContext('2d');
+        new Chart(errorRateCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.load_levels,
+                datasets: [{
+                    label: 'Error Rate (%)',
+                    data: chartData.error_rates,
+                    borderColor: '#e67e22',
+                    backgroundColor: 'rgba(230, 126, 34, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Error Rate Progression - System Stability'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Error Rate (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Concurrent Users'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Spike Test Chart
+        const spikeCtx = document.getElementById('spikeChart').getContext('2d');
+        new Chart(spikeCtx, {
+            type: 'radar',
+            data: {
+                labels: chartData.spike_labels,
+                datasets: [{
+                    label: 'Spike Latency (s)',
+                    data: chartData.spike_latencies,
+                    borderColor: '#9b59b6',
+                    backgroundColor: 'rgba(155, 89, 182, 0.2)',
+                    pointBackgroundColor: '#9b59b6'
+                }, {
+                    label: 'Spike Throughput (req/s)',
+                    data: chartData.spike_throughputs,
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.2)',
+                    pointBackgroundColor: '#f39c12'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Spike Test Performance Analysis'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Memory Chart
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        new Chart(memoryCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.memory_timestamps.slice(0, 10), // İlk 10 timestamp
+                datasets: [{
+                    label: 'Memory Usage (MB)',
+                    data: chartData.memory_usage.slice(0, 10),
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Memory Usage During Test - Growth Pattern'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Memory (MB)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Performance Degradation Chart
+        const degradationCtx = document.getElementById('degradationChart').getContext('2d');
+        new Chart(degradationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Successful Requests', 'Failed Requests'],
+                datasets: [{
+                    data: [
+                        453,
+                        0
+                    ],
+                    backgroundColor: ['#27ae60', '#e74c3c'],
+                    borderWidth: 3,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Overall Request Success vs Failure Rate'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+        
