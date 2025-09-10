@@ -1,0 +1,70 @@
+========================================================================================================================
+VLLM STRESS TESTING & LOAD SCALABILITY REPORT - QWEN3-4B
+========================================================================================================================
+Model: Qwen/Qwen3-4B
+Deployment: vllm
+Base URL: http://127.0.0.1:8000
+Max Tokens: 256
+Temperature: 0.3
+Test Timestamp: 2025-09-10T15:12:09.635684
+
+EXECUTIVE SUMMARY
+--------------------------------------------------
+Total Requests Processed: 4,377
+Breaking Point: 50 concurrent users
+Breaking Point Reason: Average latency 21.0s exceeds threshold 10.0s
+Maximum Stable Load: Not found (all levels exceeded thresholds)
+Peak Throughput: 2.24 requests/s
+
+GRADUAL LOAD TEST RESULTS
+----------------------------------------------------------------------------------------------------
+Load   Requests  Success   Failed  RPS     Latency   P95     Error%  Quality 
+----------------------------------------------------------------------------------------------------
+50     453       453       0       2.2     20.958    24.082  0.0     82.8     *BP*
+*BP* = Breaking Point detected
+
+ENDURANCE TEST RESULTS
+--------------------------------------------------------------------------------
+Duration: 0.5 hours
+Load Level: 25 concurrent users
+Total Requests: 3,924
+Success Rate: 100.00%
+Average Latency: 11.383s
+Throughput: 2.18 req/s
+Memory Growth Rate: 93.3 MB/hour
+Consistency Score: 86.9%
+
+PERFORMANCE DEGRADATION ANALYSIS
+--------------------------------------------------------------------------------
+Load 50: +0.0% latency change, +0.0% quality change
+
+RESOURCE USAGE PATTERNS
+--------------------------------------------------------------------------------
+Phase           Load   CPU%     Memory%    GPU%     Peak CPU% 
+--------------------------------------------------------------------------------
+gradual         50     3.1      55.3       0.0      8.8       
+endurance       25     4.4      55.4       0.0      31.6      
+
+MEMORY LEAK ANALYSIS
+--------------------------------------------------
+Memory Growth Rate: 93.3 MB/hour
+Total Memory Growth: 53.8 MB
+Trend: increasing
+Test Duration: 0.6 hours
+ℹ️  Moderate memory growth observed - monitor in production
+
+STRESS TESTING RECOMMENDATIONS
+--------------------------------------------------------------------------------
+• Recommended maximum load: 10 concurrent users (safety margin below breaking point)
+• Breaking point detected at: 50 users due to: Average latency 21.0s exceeds threshold 10.0s
+• Optimal performance at: 50 users (2.2 req/s)
+• System shows good consistency during extended load
+• For production deployment consider:
+  - Implementing circuit breakers at 80% of breaking point
+  - Setting up auto-scaling triggers before breaking point
+  - Monitoring memory growth patterns continuously
+  - Implementing graceful degradation strategies
+  - Load balancing across multiple vLLM instances
+
+Stress testing and load scalability analysis completed!
+========================================================================================================================

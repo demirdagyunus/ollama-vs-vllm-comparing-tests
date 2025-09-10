@@ -72,8 +72,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StreamingTestConfig:
     """Test configuration for streaming and conversational scenarios with vLLM"""
-    model_name: str = "Qwen/Qwen2-4B"
-    base_url: str = "http://localhost:8001"
+    model_name: str = "Qwen/Qwen3-4B"
+    base_url: str = "http://127.0.0.1:8000"
     deployment_type: str = "vllm"
     test_levels: List[int] = None
     test_duration: int = 900  # 15 minutes as specified in docstring
@@ -533,7 +533,7 @@ class VLLMStreamingClient:
             if self.config.enable_streaming:
                 # Stream response from vLLM
                 response = self.session.post(
-                    f"{self.config.base_url}/v1/chat/completions",
+                    f"{self.config.base_url}/chat/stream",
                     json=payload,
                     headers=self.headers,
                     stream=True,
@@ -550,7 +550,7 @@ class VLLMStreamingClient:
                             
                             # Skip SSE comments and empty lines
                             if line_decoded.startswith('data: '):
-                                data_part = line_decoded[6:]  # Remove 'data: ' prefix
+                                data_part = line_decoded[6:].strip()  # Remove 'data: ' prefix
                                 
                                 if data_part == '[DONE]':
                                     break
@@ -1280,8 +1280,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="vLLM Streaming & Conversational Performance Test - Qwen3-4B")
-    parser.add_argument("--model", default="Qwen/Qwen2-4B", help="Model name")
-    parser.add_argument("--url", default="http://localhost:8001", help="vLLM base URL")
+    parser.add_argument("--model", default="Qwen/Qwen3-4B", help="Model name")
+    parser.add_argument("--url", default="http://127.0.0.1:8000", help="vLLM base URL")
     parser.add_argument("--levels", nargs="+", type=int, default=[50, 150],
                         help="Concurrency levels for streaming tests")
     parser.add_argument("--duration", type=int, default=900,

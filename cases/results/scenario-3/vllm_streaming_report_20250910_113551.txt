@@ -1,0 +1,71 @@
+====================================================================================================
+VLLM STREAMING & CONVERSATIONAL PERFORMANCE TEST REPORT - QWEN3-4B
+====================================================================================================
+Model: Qwen/Qwen3-4B
+Deployment: vllm
+Base URL: http://127.0.0.1:8000
+Test Duration per Level: 180 seconds (3 minutes)
+Max Tokens: 512
+Temperature: 0.7
+Streaming Enabled: True
+Conversation Length: 5 turns
+Test Timestamp: 2025-09-10T11:35:51.887938
+
+EXECUTIVE SUMMARY
+--------------------------------------------------
+Total Requests Processed: 597
+Overall Success Rate: 94.30%
+Total Conversations: 526
+Average Time to First Token: 57.001s
+Maximum Throughput: 1.14 requests/s
+
+STREAMING PERFORMANCE SUMMARY
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Level    Requests  Success   Failed   Convs   RPS     TTFT(s)   TPS     Bandwidth   Coherence  Memory  
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+50       247       247       0        176     1.1     26.416    0.0     0.1         0.0        0.1     
+150      350       316       34       350     1.0     87.587    0.0     0.1         0.0        0.2     
+
+DETAILED STREAMING METRICS
+--------------------------------------------------------------------------------
+Level 50:
+  - P95 TTFT: 35.307s
+  - P99 TTFT: 38.667s
+  - P95 TPS: 0.0
+  - P99 TPS: 0.0
+  - Context Retention: 0.0%
+  - Total Bandwidth: 0.0 MB
+
+Level 150:
+  - P95 TTFT: 117.481s
+  - P99 TTFT: 119.243s
+  - P95 TPS: 0.0
+  - P99 TPS: 0.0
+  - Context Retention: 0.0%
+  - Total Bandwidth: 0.0 MB
+
+RESOURCE USAGE ANALYSIS
+--------------------------------------------------------------------------------
+Level    CPU%     Memory%    GPU%     GPU Mem%   Network MB  
+--------------------------------------------------------------------------------
+50       8.3      59.3       0.0      0.0        0.0         
+150      8.4      59.4       0.0      0.0        0.0         
+
+VLLM STREAMING SPECIFIC RECOMMENDATIONS
+--------------------------------------------------
+• Best TTFT Performance: 50 concurrent users (26.416s)
+• Best Token Throughput: 50 concurrent users (0.0 tokens/s)
+• Best Conversation Coherence: 50 concurrent users (0.0%)
+• High TTFT detected - consider optimizing --max-model-len or increasing workers
+• Low token generation speed - consider --tensor-parallel-size or GPU optimization
+• Low conversation coherence - consider adjusting temperature or context parameters
+• For streaming optimization, consider:
+  - Using --enable-chunked-prefill for better streaming performance
+  - Adjusting --max-num-seqs based on your hardware capacity
+  - Setting --tensor-parallel-size for multi-GPU setups
+  - Implementing client-side chunking for better user experience
+  - Consider WebSocket connections for real-time streaming
+  - Use --disable-log-stats to reduce overhead during streaming
+
+Streaming and conversational test completed successfully!
+====================================================================================================
