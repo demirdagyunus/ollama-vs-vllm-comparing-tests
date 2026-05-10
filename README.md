@@ -7,14 +7,16 @@ This repository bundles the scenario drivers, archived JSON measurement logs, HT
 
 ## Repository map
 
-| Path | Role |
-| --- | --- |
-| `cases/test-scenario-{1-4}-{ollama,vllm}.py` | Load generators + metric aggregation |
-| `cases/results/scenario-*/*.json` | Immutable experiment exports |
-| `reporters/paper_figures/` | Figure 3–21 generators (`generate_all.py`) |
-| `docker/` | Optional tri-service compose (Ollama + vLLM + benchmark image) |
-| `docs/` | Expanded methodology + troubleshooting |
-| `scripts/` | Setup, execution, and reproduction helpers |
+
+| Path                                         | Role                                                           |
+| -------------------------------------------- | -------------------------------------------------------------- |
+| `cases/test-scenario-{1-4}-{ollama,vllm}.py` | Load generators + metric aggregation                           |
+| `cases/results/scenario-*/*.json`            | Immutable experiment exports                                   |
+| `reporters/paper_figures/`                   | Figure 3–21 generators (`generate_all.py`)                     |
+| `docker/`                                    | Optional tri-service compose (Ollama + vLLM + benchmark image) |
+| `docs/`                                      | Expanded methodology + troubleshooting                         |
+| `scripts/`                                   | Setup, execution, and reproduction helpers                     |
+
 
 ## Quick start (host Python)
 
@@ -59,7 +61,7 @@ Outputs default to `reporters/paper_figures/output/{composite,clean}/`.
 ## Maintainer contacts
 
 - Betül Ay — `betulay@firat.edu.tr`  
-- Yunus Emre Demirdağ — `demirdagyunus@firat.edu.tr`
+- Yunus Emre Demirdağ — `demirdag.emre.y@gmail.com`
 
 ## License
 
