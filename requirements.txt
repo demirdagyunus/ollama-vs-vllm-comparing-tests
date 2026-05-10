@@ -1,0 +1,14 @@
+# Pinned reproducibility baseline (Ubuntu 20.04, Python 3.11 CI image).
+aiohttp==3.9.5
+asyncio-pool==0.6.0
+GPUtil==1.4.0
+langchain==0.2.6
+langchain-community==0.2.6
+langgraph==0.1.19
+matplotlib==3.9.0
+numpy==1.26.4
+ollama==0.2.1
+openai==1.35.10
+psutil==5.9.8
+requests==2.32.3
+scipy==1.13.1

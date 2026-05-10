@@ -1,0 +1,8 @@
+# Ollama inference sidecar (GPU via compose).
+FROM ollama/ollama:0.3.13
+
+ENV OLLAMA_HOST=0.0.0.0:11434
+ENV OLLAMA_NUM_PARALLEL=4
+ENV OLLAMA_KEEP_ALIVE=24h
+
+EXPOSE 11434

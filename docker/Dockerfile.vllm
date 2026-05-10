@@ -1,0 +1,6 @@
+# vLLM OpenAI-compatible gateway.
+FROM vllm/vllm-openai:v0.5.4
+
+ENV VLLM_LOGGING_LEVEL=WARNING
+
+EXPOSE 8000

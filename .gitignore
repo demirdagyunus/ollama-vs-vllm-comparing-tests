@@ -156,3 +156,10 @@ Desktop.ini
 
 # Environment variables
 .env
+
+# Locally regenerated figures / scratch output
+reporters/paper_figures/output/
+paper_assets/
+
+# Optional local scratch scripts
+scratch/

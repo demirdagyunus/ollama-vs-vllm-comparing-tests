@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+title: >-
+  Replication package for systematic benchmarking of Ollama versus vLLM
+message: >-
+  Please cite both the forthcoming MDPI manuscript and this repository snapshot
+type: software
+authors:
+  - family-names: Ay
+    given-names: Betül
+    affiliation: >-
+      Department of Computer Engineering, Fırat University, Elazığ, Türkiye
+    email: betulay@firat.edu.tr
+    orcid: https://orcid.org/0000-0000-0000-0000
+  - family-names: Demirdağ
+    given-names: Yunus Emre
+    affiliation: >-
+      Department of Computer Engineering, Fırat University, Elazığ, Türkiye
+    email: demirdagyunus@firat.edu.tr
+    orcid: https://orcid.org/0000-0000-0000-0000
+
+repository-code: >-
+  https://github.com/demirdagyunus/ollama-vs-vllm-comparing-tests
+license: MIT
+date-released: "2026-05-10"
+
+identifiers:
+  - type: doi
+    value: pending-assignment-after-publication
+
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Ay
+      given-names: Betül
+    - family-names: Demirdağ
+      given-names: Yunus Emre
+  title: >-
+    A Systematic Benchmark of Ollama and vLLM for Production-Grade LLM Serving
+  year: "2026"
+  journal: AI
+  publisher: MDPI

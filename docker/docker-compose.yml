@@ -1,0 +1,71 @@
+# Tri-service reproduction stack (requires NVIDIA Container Toolkit).
+# Usage (from docker/ directory):
+#   docker compose up --build ollama vllm
+
+services:
+  ollama:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ollama
+    ports:
+      - "${OLLAMA_PUBLISH:-11434}:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  vllm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.vllm
+    ports:
+      - "${VLLM_PUBLISH:-8000}:8000"
+    environment:
+      HF_HOME: /root/.cache/huggingface
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    command:
+      - --model
+      - "${VLLM_MODEL:-Qwen/Qwen3-4B}"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - "${VLLM_TP_SIZE:-2}"
+      - --max-num-seqs
+      - "256"
+      - --enable-chunked-prefill
+      - --gpu-memory-utilization
+      - "0.90"
+      - --max-model-len
+      - "4096"
+    depends_on:
+      - ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  benchmark:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.benchmark
+    volumes:
+      - ../cases/results:/workspace/cases/results
+    depends_on:
+      - vllm
+    profiles:
+      - tooling
+
+volumes:
+  ollama-models:
+  hf-cache:
