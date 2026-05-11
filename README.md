@@ -2,7 +2,7 @@
 
 This repository bundles the scenario drivers, archived JSON measurement logs, HTML summarisers, and matplotlib regenerators supporting the MDPI manuscript:
 
-> **A Systematic Benchmark of Ollama and vLLM for Production-Grade LLM Serving**  
+> **A Systematic Benchmark of Ollama and vLLM for Scalable LLM Serving under Diverse Workloads**  
 > Authors: Betül Ay and Yunus Emre Demirdağ (Fırat University, Elazığ, Türkiye)
 
 ## Repository map
